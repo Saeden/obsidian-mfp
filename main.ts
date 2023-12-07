@@ -1,7 +1,30 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { 
+	App, 
+	Editor, 
+	MarkdownView, 
+	Modal, 
+	Notice, 
+	Plugin, 
+	PluginSettingTab, 
+	Setting,
+} from 'obsidian';
+
+import { syntaxTree } from "@codemirror/language";
+import { RangeSetBuilder } from "@codemirror/state";
+import {
+  Decoration,
+  DecorationSet,
+  EditorView,
+  PluginSpec,
+  PluginValue,
+  ViewPlugin,
+  ViewUpdate,
+  WidgetType,
+} from "@codemirror/view";
+import { EmojiWidget } from "emoji";
+ 
 
 // Remember to rename these classes and interfaces!
-
 interface MyPluginSettings {
 	mySetting: string;
 }
@@ -15,6 +38,8 @@ export default class MyPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
+
+
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
@@ -76,6 +101,8 @@ export default class MyPlugin extends Plugin {
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+
+		this.registerEditorExtension(emojiListPlugin);
 	}
 
 	onunload() {
@@ -132,3 +159,57 @@ class SampleSettingTab extends PluginSettingTab {
 				}));
 	}
 }
+
+
+
+class EmojiListPlugin implements PluginValue {
+  decorations: DecorationSet;
+
+  constructor(view: EditorView) {
+    this.decorations = this.buildDecorations(view);
+  }
+
+  update(update: ViewUpdate) {
+    if (update.docChanged || update.viewportChanged) {
+      this.decorations = this.buildDecorations(update.view);
+    }
+  }
+
+  destroy() {}
+
+  buildDecorations(view: EditorView): DecorationSet {
+    const builder = new RangeSetBuilder<Decoration>();
+
+    for (let { from, to } of view.visibleRanges) {
+      syntaxTree(view.state).iterate({
+        from,
+        to,
+        enter(node) {
+          if (node.type.name.startsWith("list")) {
+            // Position of the '-' or the '*'.
+            const listCharFrom = node.from - 2;
+
+            builder.add(
+              listCharFrom,
+              listCharFrom + 1,
+              Decoration.replace({
+                widget: new EmojiWidget(),
+              })
+            );
+          }
+        },
+      });
+    }
+
+    return builder.finish();
+  }
+}
+
+const pluginSpec: PluginSpec<EmojiListPlugin> = {
+  decorations: (value: EmojiListPlugin) => value.decorations,
+};
+
+export const emojiListPlugin = ViewPlugin.fromClass(
+  EmojiListPlugin,
+  pluginSpec
+);
