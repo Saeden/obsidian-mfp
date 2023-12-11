@@ -190,15 +190,9 @@ class EmojiListPlugin implements PluginValue {
 			// console.log(node.type);
 			console.log(node.type.name)
 		  if (node.type.name.startsWith("formatting_formatting-list")) {
-			console.log("LIST FLAG FOUND...");
-			list_flag = true;
-			
-		  }
+			console.log("EMOJI INSERTED FOR LIST...");
 
-          else if (node.type.name.startsWith("list") && list_flag) {
-            // Position of the '-' or the '*'.
-			console.log("EMOJI INSERTED...");
-            const listCharFrom = node.from - 2;
+			const listCharFrom = node.from;
 
             builder.add(
               listCharFrom,
@@ -207,11 +201,6 @@ class EmojiListPlugin implements PluginValue {
                 widget: new EmojiWidget(),
               })
             );
-
-			list_flag = false;
-          } else if (list_flag) {
-			console.log("LIST FLAG FALSE...")
-			list_flag = false;
 		  }
         },
       });
