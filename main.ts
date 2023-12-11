@@ -180,7 +180,7 @@ class EmojiListPlugin implements PluginValue {
   buildDecorations(view: EditorView): DecorationSet {
     const builder = new RangeSetBuilder<Decoration>();
 
-	let list_flag = false;
+	
 
     for (let { from, to } of view.visibleRanges) {
       syntaxTree(view.state).iterate({
@@ -189,10 +189,11 @@ class EmojiListPlugin implements PluginValue {
         enter(node: any) {
 			// console.log(node.type);
 			console.log(node.type.name)
+			const listCharFrom = node.from;
+			//console.log(listCharFrom);
+		  // find out if you can get the cursor loc from inside this func
 		  if (node.type.name.startsWith("formatting_formatting-list")) {
 			console.log("EMOJI INSERTED FOR LIST...");
-
-			const listCharFrom = node.from;
 
             builder.add(
               listCharFrom,
@@ -201,6 +202,17 @@ class EmojiListPlugin implements PluginValue {
                 widget: new EmojiWidget(),
               })
             );
+		  }
+		  else if (node.type.name.startsWith("formatting_formatting-task_property")) {
+			console.log("INSERTED EMOJI FOR TASK");
+
+			builder.add(
+				listCharFrom - 2,
+				listCharFrom + 3,
+				Decoration.replace({
+				  widget: new HalfCompletedWidgetTest(),
+				})
+			  );
 		  }
         },
       });
