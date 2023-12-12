@@ -39,8 +39,11 @@ export class HalfCompletedWidgetTest extends WidgetType {
     toDOM(view: EditorView): HTMLElement {
         const div = document.createElement("span");
     
-        div.innerText = "🖕";
+        div.innerText = "TASK";
     
+
+        
+
         return div;
       }
 }
